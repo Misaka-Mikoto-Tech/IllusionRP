@@ -37,6 +37,9 @@ namespace Illusion.Rendering
             TextureHandle source = resource.cameraDepthTexture;
             TextureHandle destination = resource.activeDepthTexture;
 
+#if !UNITY_6000_5_OR_NEWER
+            _copyDepthPass.CopyToDepth = true;
+#endif
             _copyDepthPass.Render(renderGraph, destination, source, resource, cameraData, bindAsCameraDepth: false, passName: "Copy Post Depth");
         }
 
