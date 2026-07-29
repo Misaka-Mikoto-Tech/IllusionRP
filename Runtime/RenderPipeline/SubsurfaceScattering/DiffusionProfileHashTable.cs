@@ -11,8 +11,12 @@ namespace Illusion.Rendering
     [InitializeOnLoad]
     internal static class DiffusionProfileHashTable
     {
-        [NonSerialized] 
-        private static readonly Dictionary<int,  uint> DiffusionProfileHashes = new();
+        [NonSerialized]
+#if UNITY_6000_5_OR_NEWER
+        private static readonly Dictionary<EntityId, uint> DiffusionProfileHashes = new();
+#else
+        private static readonly Dictionary<int, uint> DiffusionProfileHashes = new();
+#endif
 
         static DiffusionProfileHashTable()
         {
@@ -86,7 +90,13 @@ namespace Illusion.Rendering
                 // We can't move the asset
             }
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
-            else if (!DiffusionProfileHashes.ContainsKey(profile.GetInstanceID()))
+            else if (!DiffusionProfileHashes.ContainsKey(
+#if UNITY_6000_5_OR_NEWER
+                         profile.GetEntityId()
+#else
+                         profile.GetInstanceID()
+#endif
+                     ))
             {
                 uint newHash = GenerateUniqueHash(profile);
                 if (newHash != profile.profile.hash)
@@ -96,7 +106,13 @@ namespace Illusion.Rendering
                 }
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
-                DiffusionProfileHashes.Add(profile.GetInstanceID(), profile.profile.hash);
+                DiffusionProfileHashes.Add(
+#if UNITY_6000_5_OR_NEWER
+                    profile.GetEntityId(),
+#else
+                    profile.GetInstanceID(),
+#endif
+                    profile.profile.hash);
         }
     }
 }

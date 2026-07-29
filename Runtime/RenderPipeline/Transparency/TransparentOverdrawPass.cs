@@ -77,7 +77,7 @@ namespace Illusion.Rendering
             Render(renderGraph, colorTarget, depthTarget, frameData);
         }
 
-        private static void InitRendererLists(ContextContainer frameData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        private static void InitRendererLists(ContextContainer frameData, ref PassData passData, RenderGraph renderGraph)
         {
             var cameraData = frameData.Get<UniversalCameraData>();
             var renderingData = frameData.Get<UniversalRenderingData>();
@@ -96,33 +96,18 @@ namespace Illusion.Rendering
             DrawingSettings drawSettings = UniversalRenderingUtility.CreateDrawingSettings(passData.ShaderTagIdList, frameData, sortFlags);
             
             var activeDebugHandler = GetActiveDebugHandler(cameraData);
-            if (useRenderGraph)
+            if (activeDebugHandler != null)
             {
-                if (activeDebugHandler != null)
-                {
-                    passData.DebugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData.cullResults, ref drawSettings, ref filterSettings, ref passData.RenderStateBlock);
-                }
-                else
-                {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawSettings, filterSettings, passData.RenderStateBlock, ref passData.RendererListHdl);
-                    RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.ObjectsWithErrorRendererListHdl);
-                }
+                passData.DebugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData.cullResults, ref drawSettings, ref filterSettings, ref passData.RenderStateBlock);
             }
             else
             {
-                if (activeDebugHandler != null)
-                {
-                    passData.DebugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData.cullResults, ref drawSettings, ref filterSettings, ref passData.RenderStateBlock);
-                }
-                else
-                {
-                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref renderingData.cullResults, drawSettings, filterSettings, passData.RenderStateBlock, ref passData.RendererList);
-                    RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.ObjectsWithErrorRendererList);
-                }
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref renderingData.cullResults, drawSettings, filterSettings, passData.RenderStateBlock, ref passData.RendererListHdl);
+                RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.ObjectsWithErrorRendererListHdl);
             }
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList objectsWithErrorRendererList, UniversalCameraData cameraData, bool yFlip)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererListHandle rendererList, RendererListHandle objectsWithErrorRendererList, UniversalCameraData cameraData, bool yFlip)
         {
             // Global render pass data containing various settings.
             // x,y,z are currently unused
@@ -154,7 +139,7 @@ namespace Illusion.Rendering
             {
                 cmd.DrawRendererList(rendererList);
                 // Render objects that did not match any shader pass with error shader
-                RenderingUtils.DrawRendererListObjectsWithError(cmd, ref objectsWithErrorRendererList);
+                cmd.DrawRendererList(objectsWithErrorRendererList);
             }
         }
 
@@ -178,7 +163,7 @@ namespace Illusion.Rendering
                     passData.DepthHandle = depthTarget;
                 }
 
-                InitRendererLists(frameData, ref passData, default, renderGraph, true);
+                InitRendererLists(frameData, ref passData, renderGraph);
                 var cameraData = frameData.Get<UniversalCameraData>();
                 var activeDebugHandler = GetActiveDebugHandler(cameraData);
                 if (activeDebugHandler != null)

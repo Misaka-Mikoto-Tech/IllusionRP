@@ -728,8 +728,13 @@ namespace Illusion.Rendering.PRTGI
             UniversalShadowData shadowData)
         {
             var hash = new HashCode();
+#if UNITY_6000_5_OR_NEWER
+            hash.Add(volume ? volume.GetEntityId() : default(EntityId));
+            hash.Add(volume && volume.asset ? volume.asset.GetEntityId() : default(EntityId));
+#else
             hash.Add(volume ? volume.GetInstanceID() : 0);
             hash.Add(volume && volume.asset ? volume.asset.GetInstanceID() : 0);
+#endif
             hash.Add(volume && volume.GlobalSurfelBuffer != null ? volume.GlobalSurfelBuffer.count : 0);
             hash.Add(volume && volume.GlobalSurfelBuffer != null ? volume.GlobalSurfelBuffer.GetHashCode() : 0);
             hash.Add(volume ? volume.enableRelightShadow : false);
@@ -751,7 +756,11 @@ namespace Illusion.Rendering.PRTGI
             {
                 VisibleLight mainLight = lightData.visibleLights[mainLightIndex];
                 hash.Add(mainLight.lightType);
+#if UNITY_6000_5_OR_NEWER
+                hash.Add(mainLight.light ? mainLight.light.GetEntityId() : default(EntityId));
+#else
                 hash.Add(mainLight.light ? mainLight.light.GetInstanceID() : 0);
+#endif
                 AddMatrix(ref hash, mainLight.localToWorldMatrix);
 
                 Light light = mainLight.light;

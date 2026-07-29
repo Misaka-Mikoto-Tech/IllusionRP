@@ -201,10 +201,10 @@ namespace Illusion.Rendering
         
         public static void FinalBlit(CommandBuffer cmd, ref RenderingData renderingData, RTHandle source)
         {
-            var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-            RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
-            var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
             var cameraData = renderingData.cameraData;
+            RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null
+                ? new RenderTargetIdentifier(cameraData.targetTexture)
+                : BuiltinRenderTextureType.CameraTarget;
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
             // We y-flip if
             // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
@@ -213,7 +213,7 @@ namespace Illusion.Rendering
             Vector2 viewportScale = Vector2.one;
             Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) 
                 : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-            CoreUtils.SetRenderTarget(cmd, cameraTargetHandle);
+            CoreUtils.SetRenderTarget(cmd, cameraTarget);
             Blitter.BlitTexture(cmd, source, scaleBias, 0.0f, false);
         }
         

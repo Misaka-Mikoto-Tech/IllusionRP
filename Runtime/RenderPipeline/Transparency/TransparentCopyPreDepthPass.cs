@@ -58,7 +58,6 @@ namespace Illusion.Rendering
             TextureHandle destination = renderGraph.CreateTexture(postDepthDesc);
             transparentDepthData.PostDepthTexture = destination;
 
-            _copyDepthPass.CopyToDepth = true;
             _copyDepthPass.Render(renderGraph, destination, source, resource, cameraData,
                 bindAsCameraDepth: false, passName: "Prepare Transparent Post Depth");
         }
